@@ -17,4 +17,8 @@ cd pathToRepo/node-web-mplayer
 npm install
 bower install
 ```
-
+* Create a folder `\Music` in Repository folder add Mp3 songs to the folder.
+* Run by -
+```
+node player.js
+```
