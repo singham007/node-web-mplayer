@@ -22,7 +22,7 @@ var playNext=true , songsDir = '/Music' ,songs=[] /*Playlist*/ ,i =0 ,dispSongs 
 var mkdirSync = function (path) {
   try {
     fs.mkdirSync(path);
-    console.log( songsDir.red + ' folder created. Add Songs to the folder'.red);
+    console.log( songsDir.red + ' folder created. Plz add Songs to the folder... and restart application'.red);
     process.exit(0);
   } catch(e) {
     if ( e.code != 'EEXIST' ) throw e;
@@ -74,31 +74,28 @@ function displayPlaylist(){
 }
 
 var player;	
-var playNext = false;
+var playNext;
 
 function playSong(i) { // Play song of index i from songs[]
 
 	if(i<0 || i>songs.length-1 ) {
+		i =0;
 		console.log('ERR: Plz enter valid song number'.red);
 		return;
 	}
-
+	
+	if(player == null) playNext = true;
+	
 	player= new Mplayer(songs[i]);
   	player.play();
-  	player.once('end', function(){
-  		
-    // Play next song, if there is one,else StartOver
-    	if (i < songs.length - 1){
+  	player.on('end', function(){
     		
-      			 if(playNext){
+    			 if(playNext){
       			 	 i = i+1;
+      			 	 if(i > songs.length -1) i= 0;
 					playSong(i);
       				}
-    			}else{
-    				i=0;
-    				playSong(i);
-    			}  
-    			
+    			else return;
     			playNext = true;
   	});
   		
@@ -163,6 +160,7 @@ else console.log('ERR : Wrong command...'.red + '\nCommands: play [songNumber] ,
 //*******************************//
 
 function stop(){
+	player.pause();
 	player.stop();
 }
 
@@ -189,7 +187,7 @@ function play(line){
 			playSong(0);
 		} 
 	}else playSong(0);
-	//setTimeout(function(){playNext=true},3000);
+	
 }
 
 function prev(){
@@ -200,7 +198,9 @@ function prev(){
 		i=i-1;
 		if(player) player.stop();
 	}else{
-		console.log('Cannot Prev');
+		i = songs.length -1;
+		playSong(i);
+		if(player) player.stop();
 	}
 
 	
@@ -210,7 +210,9 @@ function next(){
 	playNext=false;
 
 	if(player) player.stop();
-	i = i+1;
+	if(i < songs.length -1 ) i = i+1;
+	else i=0;
+
 	playSong(i);
 
 }
@@ -232,7 +234,7 @@ player.getTimeLength(function(length){
 });
 
 	function check(length){
-		//console.log(length);
+		
 		if(sec < length) player.seek(length);
 
 		else console.log('Cannot Seek '+ sec.toString() + 'Song length is '+length.toString() );
@@ -265,8 +267,8 @@ player.getTimeLength(function(length){
 
 
     app.get('/stop', function(req, res) {
-    	res.send(JSON.stringify({'song':i , 'action':'stop'}));
      	stop();      
+     	res.send(JSON.stringify({'song':i , 'action':'stop'}));
     });
 
     app.get('/setvolume/:vol', function(req, res) {

@@ -7,15 +7,17 @@
   tunesApp.controller('PlayerController', function($scope,$http) {
 
 
-    $scope.currentSong = 0;
+    $scope.currentSong = 1;
     $http.get('/playlist').success(function(data) {
       $scope.albums = data;
       
        $scope.play= function() {
        	$scope.currentSong = getSelection();
-    	$http.get('/play/'+$scope.currentSong).success(function(data) {
-      	console.log(data);
-    	});
+      
+    	     $http.get('/play/'+$scope.currentSong).success(function(data) {
+      	     console.log(data);
+    	     });
+         
       };
 
       $scope.pause= function() {
@@ -31,19 +33,35 @@
       };
 
        $scope.next= function() {
-   			$scope.currentSong = $scope.currentSong + 1;
-   			console.log($scope.currentSong);
+
+        if($scope.currentSong < $scope.albums.length) $scope.currentSong = $scope.currentSong + 1;
+        else  $scope.currentSong = 1;
+
    			 $http.get('/play/'+$scope.currentSong).success(function(data) {
       		console.log(data);
+          updatePlayer(data);
     	});
       };
 
        $scope.prev= function() {
-       	$scope.currentSong = $scope.currentSong -1;
-   		 $http.get('/play/'+$scope.currentSong).success(function(data) {
-      		console.log(data);
-    	});
+
+       	if($scope.currentSong > 1 ) $scope.currentSong = $scope.currentSong -1;
+        else $scope.currentSong = $scope.albums.length;
+
+   		    $http.get('/play/'+$scope.currentSong).success(function(data) {
+      	   	console.log(data);
+            updatePlayer(data);
+    	     });
     };
+
+     $scope.setVolume= function(vol) {
+         
+         if(vol >= -1 || vol <= 100 )
+           $http.get('/setvolume/'+vol).success(function(data) {
+             console.log(data);
+           });
+         else return;
+      };
 
     });
   });
@@ -52,6 +70,12 @@
 function getSelection(){
 if($('input[name=radio1]:checked')[0]) return parseInt($('input[name=radio1]:checked')[0].attributes['value'].value);
 else return 1 ;
+}
+
+function updatePlayer(data){
+
+  $('input[value = '+ data.song + ']')[0].checked = true ;
+
 }
 
 })(window);

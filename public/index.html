@@ -24,12 +24,14 @@
         <h1>Playlist</h1>
         <nav>
           <button class="control play" ng-click="play()" >Play</button>
-          <button class="control pause" ng-click="pause()">Pause</button>
+          <button class="control pause" ng-click="pause()">Pause/Resume</button>
           <button class="control prev" ng-click="prev()">Prev</button>
           <button class="control next" ng-click="next()">Next</button>
         </nav>
+
+        </br> SetVolume (%) : <input type="text" ng-model="vol" >  <button class="control play" ng-click="setVolume(vol)" > Set </button> </br>
     
-  
+        </br>
      
        <label ng-repeat="x in albums" >
        <input type="radio" name="radio1" value= " {{ $index + 1 }} "> <td>{{ $index + 1 }}  </td> | <td> {{ x }} <td> 

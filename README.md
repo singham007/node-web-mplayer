@@ -10,7 +10,7 @@ git clone https://github.com/singham007/node-web-mplayer.git
 ```
 * Change Directory to repository 
 ```
-cd pathToRepo/node-web-mplayer
+cd node-web-mplayer
 ```
 * Install by-
 ```
