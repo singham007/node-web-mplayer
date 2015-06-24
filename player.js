@@ -7,18 +7,17 @@ var Mplayer=require('node-mplayer'),
 	fileType = require('file-type'),
 	colors = require('colors'),
 	path  = require('path'),
-	cp = require('child_process'),
  	express  = require('express'),
     app      = express(),     
  	server = require('http').Server(app),
-	path =require('path');
+	path =require('path'),
+	config=require('./config.json');
  	
 
 
+var playNext=true , songsDir = config.MusicDirectory ,songs=[] /*Playlist*/ ,i =0 ,dispSongs = [];
 
-var playNext=true , songsDir = '/Music' ,songs=[] /*Playlist*/ ,i =0 ,dispSongs = [];
-
-
+/*
 var mkdirSync = function (path) {
   try {
     fs.mkdirSync(path);
@@ -29,17 +28,25 @@ var mkdirSync = function (path) {
   }
 };
 
-mkdirSync('.'+songsDir);
+mkdirSync(songsDir);
+*/
+
+
+
+try{
+var files = fs.readdirSync(songsDir); // Read all files
+}catch(e){
+	if(e.code == 'ENOENT'){
+		console.log('ERR:'.red + songsDir.red + ' doesnt exist! Plz Enter correct path to MusicDirectory in config.json'.red);
+		process.exit(1);
+	}
+}
 
 console.log('\n Searching Song in '.green  + songsDir.yellow + ' folder... \n'.green);
 
-
-
-var files = fs.readdirSync('.' +songsDir); // Read all files
-
 for(var j=0,len= files.length;j<len;j++){
 
-	files[j] = '.'+songsDir+'/'+files[j];
+	files[j] = songsDir+files[j];
 	var validateIfMp3 = isMp3(files[j]);
     //console.log(files[j] + " isMp3 ? : " + validateIfMp3);
     if(validateIfMp3) songs.push(files[j]); // Push if file is MP3
@@ -58,7 +65,7 @@ console.log(' ' + songs.length.toString().yellow + ' Songs Found : \n'.green);
 
 
 	for(var k=0;k<songs.length;k++){		
-		dispSongs[k] = songs[k].replace('./Music/','');
+		dispSongs[k] = songs[k].replace(songsDir,'').replace('.mp3','');
 		}
 
 displayPlaylist();
@@ -75,6 +82,7 @@ function displayPlaylist(){
 
 var player;	
 var playNext;
+var currentVol=100;
 
 function playSong(i) { // Play song of index i from songs[]
 
@@ -87,7 +95,7 @@ function playSong(i) { // Play song of index i from songs[]
 	if(player == null) playNext = true;
 	
 	player= new Mplayer(songs[i]);
-  	player.play();
+  	player.play({volume: currentVol});
   	player.on('end', function(){
     		
     			 if(playNext){
@@ -101,7 +109,7 @@ function playSong(i) { // Play song of index i from songs[]
   		
 
 
-  	console.log('Now Playing: '.red + songs[i].replace('./Music/','').replace('.mp3','').yellow);
+  	console.log('Now Playing: '.red + dispSongs[i].replace('./Music/','').replace('.mp3','').yellow);
   	
 }
 
@@ -274,6 +282,7 @@ player.getTimeLength(function(length){
     app.get('/setvolume/:vol', function(req, res) {
      	  setVolume(req.params.vol);  
      	   res.send(JSON.stringify({'song':i , 'action':'setvolume'}));
+     	   currentVol = req.params.vol;
     });
 
 
