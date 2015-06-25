@@ -15,7 +15,7 @@ var Mplayer=require('node-mplayer'),
  	
 
 
-var playNext=true , songsDir = config.MusicDirectory ,songs=[] /*Playlist*/ ,i =0 ,dispSongs = [];
+var playNext=true , songsDir = config.MusicDirectory ,songs=[] /*Playlist*/ ,currentSong =0 ,dispSongs = [];
 
 /*
 var mkdirSync = function (path) {
@@ -84,32 +84,38 @@ var player;
 var playNext;
 var currentVol=100;
 
-function playSong(i) { // Play song of index i from songs[]
+function playSong(i) { // Play song of index currentSong from songs[]
 
-	if(i<0 || i>songs.length-1 ) {
-		i =0;
+	if(currentSong<0 || currentSong>songs.length-1 ) {
 		console.log('ERR: Plz enter valid song number'.red);
 		return;
+	}else{
+		currentSong = i;
 	}
 	
 	if(player == null) playNext = true;
 	
-	player= new Mplayer(songs[i]);
+	player= new Mplayer(songs[currentSong]);
   	player.play({volume: currentVol});
   	player.on('end', function(){
     		
+    		setTimeout(function(){
+    				playNext = true;
+    			},3000);
+
     			 if(playNext){
-      			 	 i = i+1;
-      			 	 if(i > songs.length -1) i= 0;
-					playSong(i);
+      			 	 currentSong = currentSong+1;
+      			 	 if(currentSong > songs.length -1) currentSong= 0;
+					playSong(currentSong);
       				}
     			else return;
-    			playNext = true;
+
+    			
   	});
   		
 
 
-  	console.log('Now Playing: '.red + dispSongs[i].replace('./Music/','').replace('.mp3','').yellow);
+  	console.log('Now Playing: '.red + dispSongs[currentSong].replace('./Music/','').replace('.mp3','').yellow);
   	
 }
 
@@ -182,13 +188,14 @@ function resume(){
 }
 
 function play(line){
-		playNext=false;
+
+	playNext=false;
 	line = line.replace('play','');
 	if(line) {
 		try {
 			if(player) player.stop();
 			playSong(parseInt(line) - 1 ); 
-			i =parseInt(line) - 1 ;
+			//currentSong =parseInt(line) - 1 ;
 		}catch(e){
 			if(player) player.stop();
 			console.log('ERR : play argument should be INT'.red);
@@ -201,13 +208,11 @@ function play(line){
 function prev(){
 
 	playNext=false;
-	if(i > 0) {
-		playSong(i-1);
-		i=i-1;
+	if(currentSong > 0) {
+		playSong(currentSong-1);
 		if(player) player.stop();
 	}else{
-		i = songs.length -1;
-		playSong(i);
+		playSong(songs.length -1);
 		if(player) player.stop();
 	}
 
@@ -218,10 +223,10 @@ function next(){
 	playNext=false;
 
 	if(player) player.stop();
-	if(i < songs.length -1 ) i = i+1;
-	else i=0;
 
-	playSong(i);
+	if(currentSong < songs.length -1 ) playSong(currentSong+1);
+	else playSong(0);
+
 
 }
 	
@@ -260,28 +265,40 @@ player.getTimeLength(function(length){
 
 
     app.get('/play/:song_no', function(req, res) {
-    	i= req.params.song_no;
-    	playNext=false;
-    	if(player) player.stop();
-     	playSong(req.params.song_no - 1);
-     	res.send(JSON.stringify({'song':i , 'action':'play'}));
+    	
+    	function endplayer (){ if(player) player.stop(); }
+
+    	syncWithResponse(
+    	endplayer(),
+     	playSong(req.params.song_no - 1),
+     	res.send(JSON.stringify({'song':currentSong , 'action':'play'}))
+     				);
+
+    		function syncWithResponse(end,play,callback){
+    			playNext=false;
+    			end;
+    			play;
+    			callback;
+   		 	}
     });
+
+    
      
     app.get('/pause', function(req, res) { 	
      	pause();   
-     	res.send(JSON.stringify({'song':i , 'action':'pause'}));
+     	res.send(JSON.stringify({'song':currentSong , 'action':'pause'}));
     });
 
 
 
     app.get('/stop', function(req, res) {
      	stop();      
-     	res.send(JSON.stringify({'song':i , 'action':'stop'}));
+     	res.send(JSON.stringify({'song':currentSong , 'action':'stop'}));
     });
 
     app.get('/setvolume/:vol', function(req, res) {
      	  setVolume(req.params.vol);  
-     	   res.send(JSON.stringify({'song':i , 'action':'setvolume'}));
+     	   res.send(JSON.stringify({'song':currentSong , 'action':'setvolume'}));
      	   currentVol = req.params.vol;
     });
 
@@ -290,3 +307,4 @@ player.getTimeLength(function(length){
     	
      	res.send(JSON.stringify(dispSongs));  
     });
+

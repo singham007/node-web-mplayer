@@ -72,9 +72,11 @@ if($('input[name=radio1]:checked')[0]) return parseInt($('input[name=radio1]:che
 else return 1 ;
 }
 
+
+
 function updatePlayer(data){
 
-  $('input[value = '+ data.song + ']')[0].checked = true ;
+  $('input[value = '+ (data.song +1) + ']')[0].checked = true ;
 
 }
 
