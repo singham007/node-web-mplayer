@@ -34,8 +34,9 @@
 
        $scope.next= function() {
 
-        if($scope.currentSong < $scope.albums.length) $scope.currentSong = $scope.currentSong + 1;
-        else  $scope.currentSong = 1;
+
+         if($scope.currentSong < $scope.albums.length) $scope.currentSong = $scope.currentSong + 1;
+              else  $scope.currentSong = 1;
 
    			 $http.get('/play/'+$scope.currentSong).success(function(data) {
       		console.log(data);
@@ -62,6 +63,18 @@
            });
          else return;
       };
+
+       $scope.setCurrentSongAsServer= function() {
+         
+           $http.get('/getcurrentsong/').success(function(data) {
+             
+              $scope.currentSong = parseInt(data.song +1);
+
+
+           });
+         
+      };
+
 
     });
   });

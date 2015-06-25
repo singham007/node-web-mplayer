@@ -99,17 +99,17 @@ function playSong(i) { // Play song of index currentSong from songs[]
   	player.play({volume: currentVol});
   	player.on('end', function(){
     		
-    		setTimeout(function(){
-    				playNext = true;
-    			},3000);
+    		
 
     			 if(playNext){
       			 	 currentSong = currentSong+1;
       			 	 if(currentSong > songs.length -1) currentSong= 0;
 					playSong(currentSong);
       				}
-    			else return;
-
+    			
+      				setTimeout(function(){
+    				playNext = true;
+    			},100);
     			
   	});
   		
@@ -306,5 +306,10 @@ player.getTimeLength(function(length){
     app.get('/playlist', function(req, res) {
     	
      	res.send(JSON.stringify(dispSongs));  
+    });
+
+    app.get('/getcurrentsong', function(req, res) {
+    	
+     	res.send(JSON.stringify({'song':currentSong , 'action':'null'}));  
     });
 
