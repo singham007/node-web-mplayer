@@ -1,21 +1,40 @@
 
 
-var Mplayer=require('node-mplayer'),
+var Mplayer = require('node-mplayer'),
 	fs = require('fs'),
 	readline = require('readline'),
-	readChunk = require('read-chunk'), 
+	readChunk = require('read-chunk'),
 	fileType = require('file-type'),
 	colors = require('colors'),
 	path  = require('path'),
  	express  = require('express'),
-    app      = express(),     
+	cp = require('child_process'),
+  app      = express(),
  	server = require('http').Server(app),
 	path =require('path'),
 	config=require('./config.json');
- 	
+
 
 
 var playNext=true , songsDir = config.MusicDirectory ,songs=[] /*Playlist*/ ,currentSong =0 ,dispSongs = [];
+
+
+
+
+//df -h | grep --color=never /dev/sdb  //Get Mounted USB device
+
+getUsb();
+
+function getUsbDevice(){
+
+	var exec = cp.exec;
+	exec('df -h | grep --color=never /dev/sdb', function(error, stdout, stderr) {
+	    stdout=stdout.replace(/.*?\%/i, '').trim();
+			console.log(stdout);
+
+	});
+
+}
 
 /*
 var mkdirSync = function (path) {
@@ -64,7 +83,7 @@ function isMp3(mp3Src) { //Validate mp3 file
 console.log(' ' + songs.length.toString().yellow + ' Songs Found : \n'.green);
 
 
-	for(var k=0;k<songs.length;k++){		
+	for(var k=0;k<songs.length;k++){
 		dispSongs[k] = songs[k].replace(songsDir,'').replace('.mp3','');
 		}
 
@@ -80,7 +99,7 @@ function displayPlaylist(){
 	});
 }
 
-var player;	
+var player;
 var playNext;
 var currentVol=100;
 
@@ -92,31 +111,31 @@ function playSong(i) { // Play song of index currentSong from songs[]
 	}else{
 		currentSong = i;
 	}
-	
-	if(player == null) playNext = true;
-	
+
+	if(player === null) playNext = true;
+
 	player= new Mplayer(songs[currentSong]);
   	player.play({volume: currentVol});
   	player.on('end', function(){
-    		
-    		
+
+
 
     			 if(playNext){
       			 	 currentSong = currentSong+1;
       			 	 if(currentSong > songs.length -1) currentSong= 0;
 					playSong(currentSong);
       				}
-    			
+
       				setTimeout(function(){
     				playNext = true;
     			},100);
-    			
+
   	});
-  		
+
 
 
   	console.log('Now Playing: '.red + dispSongs[currentSong].replace('./Music/','').replace('.mp3','').yellow);
-  	
+
 }
 
 
@@ -181,7 +200,7 @@ function stop(){
 function pause(){
 	player.pause();
 }
-	
+
 
 function resume(){
 	player.pause();
@@ -194,15 +213,15 @@ function play(line){
 	if(line) {
 		try {
 			if(player) player.stop();
-			playSong(parseInt(line) - 1 ); 
+			playSong(parseInt(line) - 1 );
 			//currentSong =parseInt(line) - 1 ;
 		}catch(e){
 			if(player) player.stop();
 			console.log('ERR : play argument should be INT'.red);
 			playSong(0);
-		} 
+		}
 	}else playSong(0);
-	
+
 }
 
 function prev(){
@@ -216,7 +235,7 @@ function prev(){
 		if(player) player.stop();
 	}
 
-	
+
 }
 
 function next(){
@@ -229,7 +248,7 @@ function next(){
 
 
 }
-	
+
 
 function stopApp(){
 	process.exit(0);
@@ -247,7 +266,7 @@ player.getTimeLength(function(length){
 });
 
 	function check(length){
-		
+
 		if(sec < length) player.seek(length);
 
 		else console.log('Cannot Seek '+ sec.toString() + 'Song length is '+length.toString() );
@@ -258,14 +277,14 @@ player.getTimeLength(function(length){
 
 
  app.use(express.static(__dirname + '/public'));                 // set the static files location /public/img will be /img for users
-  
+
 
     app.listen(8080);
     console.log("App listening on port 8080");
 
 
     app.get('/play/:song_no', function(req, res) {
-    	
+
     	function endplayer (){ if(player) player.stop(); }
 
     	syncWithResponse(
@@ -282,34 +301,33 @@ player.getTimeLength(function(length){
    		 	}
     });
 
-    
-     
-    app.get('/pause', function(req, res) { 	
-     	pause();   
+
+
+    app.get('/pause', function(req, res) {
+     	pause();
      	res.send(JSON.stringify({'song':currentSong , 'action':'pause'}));
     });
 
 
 
     app.get('/stop', function(req, res) {
-     	stop();      
+     	stop();
      	res.send(JSON.stringify({'song':currentSong , 'action':'stop'}));
     });
 
     app.get('/setvolume/:vol', function(req, res) {
-     	  setVolume(req.params.vol);  
+     	  setVolume(req.params.vol);
      	   res.send(JSON.stringify({'song':currentSong , 'action':'setvolume'}));
      	   currentVol = req.params.vol;
     });
 
 
     app.get('/playlist', function(req, res) {
-    	
-     	res.send(JSON.stringify(dispSongs));  
+
+     	res.send(JSON.stringify(dispSongs));
     });
 
     app.get('/getcurrentsong', function(req, res) {
-    	
-     	res.send(JSON.stringify({'song':currentSong , 'action':'null'}));  
-    });
 
+     	res.send(JSON.stringify({'song':currentSong , 'action':'null'}));
+    });
