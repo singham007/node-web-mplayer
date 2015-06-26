@@ -12,7 +12,7 @@ git clone https://github.com/singham007/node-web-mplayer.git
 ```
 cd node-web-mplayer
 ```
-* Install by-
+* Install by- ( Make sure you have [node](https://nodejs.org/) , [npm](https://docs.npmjs.com/getting-started/installing-node) & [bower] (http://bower.io/) installed.)
 ```
 npm install
 bower install
