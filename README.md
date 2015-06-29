@@ -15,7 +15,7 @@ cd node-web-mplayer
 * Install by- ( Make sure you have [node](https://nodejs.org/) , [npm](https://docs.npmjs.com/getting-started/installing-node) & [bower] (http://bower.io/) installed.)
 ```
 npm install
-bower install
+bower - g install
 ```
 * Open config.json and Enter your Music Directory where songs are stored .
 * Run by -
